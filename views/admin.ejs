@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .admin-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-top: 30px;
+            border-bottom: 2px solid #A855F7;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        form input, form textarea, form button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        form button {
+            background-color: #A855F7;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+
+        table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #A855F7;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #A855F7;
+        }
+
+        button {
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h2>Admin Dashboard</h2>
+
+        <h3>Update Personal Information</h3>
+        <form action="/admin/update-personal" method="POST">
+            <input type="text" name="full_name" placeholder="Full Name">
+            <input type="text" name="profession" placeholder="Profession">
+            <textarea name="about" placeholder="About"></textarea>
+            <input type="text" name="profile_picture" placeholder="Profile Picture">
+            <input type="text" name="linkedin" placeholder="LinkedIn URL">
+            <input type="text" name="github" placeholder="GitHub URL">
+            <button type="submit">Update</button>
+        </form>
+
+        <h3>Update Skills</h3>
+        <form action="/admin/update-skills" method="POST">
+            <textarea name="skills" placeholder="Skills (comma separated)" required></textarea>
+            <button type="submit">Update Skills</button>
+        </form>
+
+        <h3>Add New Project</h3>
+        <form action="/admin/update-projects" method="POST">
+            <input type="text" name="title" placeholder="Project Title" required>
+            <textarea name="description" placeholder="Project Description" required></textarea>
+            <input type="text" name="link" placeholder="Project URL" required>
+            <button type="submit">Add Project</button>
+        </form>
+        <table id="projects-table">
+            <thead>
+                <tr>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Link</th>
+                        <th>Actions</th>
+                    </tr>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated here dynamically -->
+            </tbody>
+        </table>
+        
+        <script>
+            // Function to fetch and populate projects
+            // Function to fetch and populate projects
+
+// Function to edit a project
+function editProject(projectId) {
+    const row = document.querySelector(`tr[data-id="${projectId}"]`);
+    const title = row.children[0].innerText;
+    const description = row.children[1].innerText;
+    const link = row.children[2].innerText;
+
+    const newTitle = prompt('Edit Title:', title);
+    const newDescription = prompt('Edit Description:', description);
+    const newLink = prompt('Edit Link:', link);
+
+    if (newTitle !== null && newDescription !== null && newLink !== null) {
+        updateProject(projectId, newTitle, newDescription, newLink);
+    }
+}
+
+// Function to send update request
+async function updateProject(projectId, newTitle, newDescription, newLink) {
+    try {
+        const response = await fetch(`/admin/projects/${projectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTitle, description: newDescription, link: newLink }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message);
+            loadProjects(); // Refresh the table
+        } else {
+            alert(result.error || result.message);
+        }
+    } catch (error) {
+        console.error('Error updating project:', error);
+        alert('Failed to update the project. Please try again.');
+    }
+}
+
+// Function to fetch and populate projects
+//removed <button onclick="editProject(${project.id})">Edit</button>
+            async function loadProjects() {
+                try {
+                    const response = await fetch('/admin/projects');
+                    const projects = await response.json();
+
+                    const tableBody = document.querySelector('#projects-table tbody');
+                    tableBody.innerHTML = ''; // Clear previous rows
+
+                    projects.forEach(project => {
+                        const row = document.createElement('tr');
+                        row.setAttribute('data-id', project.id);
+
+                        row.innerHTML = `
+                            <td>${project.title}</td>
+                            <td>${project.description}</td>
+                            <td>${project.link}</td>
+                            <td>
+                                
+                                <button onclick="deleteProject(${project.id})">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Error loading projects:', error);
+                }
+            }
+
+
+        
+            // Call the function to load projects when the page loads
+            window.onload = loadProjects;
+        
+            // Function to delete a project
+            async function deleteProject(projectId) {
+                if (!confirm('Are you sure you want to delete this project?')) return;
+        
+                try {
+                    const response = await fetch(`/admin/projects/${projectId}`, {
+                        method: 'DELETE',
+                    });
+        
+                    const result = await response.json();
+        
+                    if (response.ok) {
+                        alert(result.message);
+                        document.querySelector(`tr[data-id="${projectId}"]`).remove();
+                    } else {
+                        alert(result.error || result.message);
+                    }
+                } catch (error) {
+                    console.error('Error deleting project:', error);
+                    alert('Failed to delete the project. Please try again.');
+                }
+            }
+        </script>
+        
+        <a href="/logout">Logout</a>
+    </div>
+</body>
+</html>
